@@ -1,0 +1,49 @@
+name: Build Sevkiyat Hakedişim APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'SevkiyatHakedişim_Android_Projesi.zip'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        run: |
+          unzip -q 'SevkiyatHakedişim_Android_Projesi.zip' -d source
+          test -f 'source/SevkiyatHakedişim_Android_Projesi/settings.gradle'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        working-directory: source/SevkiyatHakedişim_Android_Projesi
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sevkiyat-Hakedisim-APK
+          path: source/SevkiyatHakedişim_Android_Projesi/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
